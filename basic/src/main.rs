@@ -136,73 +136,63 @@
 // mod 关键字：声明一个子模块。模块是 Rust 的代码组织方式，一个文件 = 一个模块。
 // mod base_type; 意思是引入 base_type.rs 这个文件作为 base_type 模块
 mod base_type;
+mod hello_world;
 mod bit_ops;
+mod operator;
 mod if_flow;
+mod chain_call;
+mod closure;
+mod while_flow;
+mod loop_flow;
+mod for_flow;
 mod match_flow;
 mod return_flow;
 mod ownership_and_refs;
 mod compound_types;
 mod vec_type;
+mod fizzbuzz;
+mod score_analyzer;
 
 fn main() {
-    println!("pub 是 public 的意思，表示这个函数是公开的，可以被其他模块调用和访问");
-    println!("hello_world 是函数的名称,Rust 采用 snake_case 命名法，函数名小写，单词用下划线连接");
-    println!("通常每个函数都有参数，这里没有参数，所以是 ()");
-    println!("fn 是函数定义关键字,main 是程序入口（程序从这里开始执行）");
-    println!("{{ }} 是块(block)创建一个新的作用域");
-    println!("  块本身也是表达式——里面最后一行不加分号，块就会返回那个值");
-    println!("  比如 let y = {{ let x = 1; x + 2 }};  // 块返回值 3,赋给 y");
-    println!("  整个 main 函数的 {{ }} 就是最大的块，里面的内容依次执行");
-    println!();
+    // ===== std::env::args: 读取命令行参数 =====
+    // `std::env::args()` 返回迭代器，跳过第一个(程序名)
+    // `.nth(1)` 取第二个参数(即用户输入的第一个参数)
+    let arg = std::env::args().nth(1);
 
-    // ===== println! 宏与格式化占位 =====
-    println!("Hello, world!");
-    println!("println! 是一个宏，用于打印并自动换行");
-    println!("{} + {} = {}", 1, 2, 3);
-    println!("  上面用的是 {{}} 位置占位符：按顺序填入");
-    println!("{0} + {0} = {1}", 2, 4);
-    println!("  上面用的是 {{0}} 索引占位符：按位置编号填入，可复用");
-    println!("{name} 说：{msg}", name = "Rust", msg = "你好");
-    println!("  上面用的是 {{name}} 命名占位符：按变量名填入");
-    let nums = vec![1, 2, 3];
-    println!("调试输出：{:?}", nums);
-    println!("  上面用的是 {{:?}} 调试占位符：打印 Debug 格式");
-    println!();
+    // match 匹配 Option 的 Some/None
+    match arg.as_deref() {
+        // `as_deref()`: Option<String> → Option<&str> (不拿走所有权)
+        Some("base_type") => base_type::run(),
+        Some("hello_world") => hello_world::run(),
+        Some("bit_ops") => bit_ops::run(),
+        Some("operator") => operator::run(),
+        Some("if_flow") => if_flow::run(),
+        Some("chain_call") => chain_call::run(),
+        Some("closure") => closure::run(),
+        Some("while_flow") => while_flow::run(),
+        Some("loop_flow") => loop_flow::run(),
+        Some("for_flow") => for_flow::run(),
+        Some("match_flow") => match_flow::run(),
+        Some("return_flow") => return_flow::run(),
+        Some("ownership_and_refs") => ownership_and_refs::run(),
+        Some("compound_types") => compound_types::run(),
+        Some("vec_type") => vec_type::run(),
+        Some("fizzbuzz") => fizzbuzz::run(),
+        Some("score_analyzer") => score_analyzer::run(),
+        Some(other) => {
+            println!("未知模块: {}", other);
+            print_help();
+        }
+        None => print_help(),
+    }
+}
 
-    // ===== let、表达式、语句、分号 =====
-    println!("let: 变量绑定关键字, let 本身是语句，不产生值，以分号结尾");
-    println!("let 右边的 = 和表达式才会产生值，绑定给左边的变量名");
-    println!("fn hello_world() 是一个函数声明，也是语句，不产生值");
-    println!("一句话，表达式 = 有值，语句 = 没值。分号把表达式变成语句");
-    println!("通常函数最后一行不用分号，那么最后一行就会产生值，如果你想要它产生值的话");
-    println!("后面碰到不同的表达式和语句的时候会说明");
-    println!();
-    println!("print! 和 println! 的区别：换行");
-    print!("print! 输出后不换行，");
-    print!("所以下一个 print! 会接在后面，");
-    print!("三个 print! 全挤在同一行。");
-    println!();
-    println!("而 println! 输出后自动换行，所以我是新起的一行。");
-    println!();
-    println!("宏是 Rust 中一种特殊的编译时代码生成机制，具体在宏部分讲解。");
-    println!();
-
-    println!(":: 是路径分隔符，表示进入这个模块里面找");
-    println!();
-    println!("--- base_type:基础类型、溢出、进制、类型转换 ---");
-    base_type::run();
-    println!("--- bit_ops:位运算(与、或、异或、非、移位)---");
-    bit_ops::run();
-    println!("--- if_flow:条件判断(if/else/if 表达式)---");
-    if_flow::run();
-    println!("--- match_flow:模式匹配(match/守卫/范围)---");
-    match_flow::run();
-    println!("--- return_flow:函数返回值(隐式/显式/提前return)---");
-    return_flow::run();
-    println!("--- ownership_and_refs:所有权/引用/借用---");
-    ownership_and_refs::run();
-    println!("--- compound_types:元组/数组/字符串---");
-    compound_types::run();
-    println!("--- vec_type:向量(Vec)---");
-    vec_type::run();
+/// 打印用法和可用模块列表
+fn print_help() {
+    println!("用法: cargo run -- <模块名>");
+    println!("可用模块:");
+    println!("  hello_world, base_type, bit_ops, operator, if_flow, chain_call");
+    println!("  closure, while_flow, loop_flow, for_flow, match_flow");
+    println!("  return_flow, ownership_and_refs, compound_types, vec_type");
+    println!("  fizzbuzz, score_analyzer");
 }

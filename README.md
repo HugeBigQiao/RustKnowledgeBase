@@ -1,48 +1,19 @@
 # Rust 学习项目
 
-本项目是一个 Rust 学习仓库，按模块拆分，从基础概念到项目逐步深入。
+本项目是一个 Rust 学习仓库，按模块拆分，从基础概念到综合项目逐步深入。
 
 ## 项目结构
 
 ```
 RustLearning/
-├── basic/           ← Rust 基础（注释即文档）
-├── ...              ← 后续学习项目（每个都是一个独立 crate）
+├── basic/                     ← 零基础入门 (18个模块)
+├── intermediate/              ← 中级概念 (9个模块)
+├── intermediate_example/      ← 综合实践 (图书管理系统)
+├── advanced/                  ← 高级概念 (9个模块)
+├── advanced_data_pipeline/    ← 项目1: 数据流通 (文件 ↔ SQLite)
+├── advanced_data_flow/        ← 项目2: 异步数据流 (async PG + egui)
 └── README.md
 ```
-
-### basic/ 模块列表
-
-| 文件 | 内容 |
-|---|---|
-| `main.rs` | 程序入口: pub/fn/块、println! 格式化、let/语句/表达式/分号、print! vs println! |
-| `base_type.rs` | 基础类型: 整数/浮点/bool/char、整数溢出处理、数字字面量(进制)、类型转换(as/try_into) |
-| `bit_ops.rs` | 位运算: & / \| / ^ / ! / << / >> |
-| `if_flow.rs` | 条件判断: if / else if / else、if 作为表达式、条件必须为 bool |
-| `match_flow.rs` | 模式匹配: match 表达式、穷尽检查、`_` / `=>`、`\|` 或模式、`..=` 范围、守卫 if |
-| `return_flow.rs` | 函数返回值: 隐式返回 vs 显式 return、`->` / `()` 说明、卫语句、mut 嵌套函数 |
-| `ownership_and_refs.rs` | 所有权与引用: move/Copy/clone、深拷贝浅拷贝、`&` / `&mut` 借用规则、切片 slice |
-| `compound_types.rs` | 复合类型: 元组/数组/char-&str-String 三者关系、String 方法调用、mut 与复合类型 |
-| `vec_type.rs` | 向量 Vec: 创建/push/pop、安全访问 get、len/capacity 扩容、所有权、遍历 |
-
-### 推荐学习顺序
-
-按下方顺序阅读, 后面的模块会用到前面的概念:
-
-```
-1. main.rs                   → 先了解 Rust 代码长什么样
-2. base_type.rs              → 基础类型, 一切数据的基础
-3. bit_ops.rs                → 位运算, 和整数密切相关
-4. if_flow.rs                → 条件判断, 最简单的控制流
-5. match_flow.rs             → 模式匹配, 更强大的控制流
-6. return_flow.rs            → 函数怎么返回值
-7. ownership_and_refs.rs     → ⭐ 核心! 所有权/引用/切片
-8. compound_types.rs         → 元组/数组/字符串 (依赖所有权)
-9. vec_type.rs               → 向量 (依赖所有权和复合类型)
-```
-
-`ownership_and_refs.rs` 是整个 Rust 的核心, 建议多看几遍.
-后面的 `compound_types.rs` 和 `vec_type.rs` 大量用到所有权概念.
 
 ## 前置知识
 
@@ -59,30 +30,124 @@ Rust 的所有权系统重度依赖堆和栈的概念, 建议先了解:
   指针+长度+容量.
 
 - **为什么重要**: Rust 通过所有权追踪堆数据的"主人", 在主人离开作用域时
-  自动释放堆内存. 如果分不清哪些数据在堆上哪些在栈上, 就很难理解为什么
-  i32 赋值后原变量还能用, 而 String 赋值后原变量就失效了.
+  自动释放堆内存.
 
-> 如果对堆和栈还不太熟悉, 可以先搜索"编程 堆和栈的区别"补充一下.
-> 这是计算机基础概念, 对学习任何系统级语言都有帮助.
+---
+
+## basic/ — 零基础入门
+
+面向零基础, 每个 `.rs` 文件一个主题, 通过 `pub fn run()` 运行时输出教学.
+
+| # | 文件 | 内容 |
+|---|---|---|
+| 1 | `main.rs` | 程序入口: pub/fn/块、println! 格式化、let/语句/表达式/分号 |
+| 2 | `hello_world.rs` | Hello World: 基础概念独立演示 |
+| 3 | `base_type.rs` | 基础类型: 整数/浮点/bool/char、类型转换 |
+| 4 | `bit_ops.rs` | 位运算 |
+| 5 | `operator.rs` | 运算符: 算术/比较/逻辑/赋值 |
+| 6 | `if_flow.rs` | 条件判断: if / else、if 作为表达式 |
+| 7 | `chain_call.rs` | 链式调用: 字符串链/迭代器链 |
+| 8 | `closure.rs` | 闭包: map/filter/sort_by |
+| 9 | `while_flow.rs` | while 循环 + while let |
+| 10 | `loop_flow.rs` | loop 循环 + break 返回值 |
+| 11 | `for_flow.rs` | for 循环: 遍历数组/Vec/范围 |
+| 12 | `match_flow.rs` | 模式匹配: match 穷尽检查/或模式/守卫 |
+| 13 | `return_flow.rs` | 函数返回值: 隐式/显式 return |
+| 14 | `ownership_and_refs.rs` | ⭐ 所有权与引用: move/Copy/clone/借用/切片 |
+| 15 | `compound_types.rs` | 复合类型: 元组/数组/字符串 |
+| 16 | `vec_type.rs` | 向量 Vec |
+| 17 | `fizzbuzz.rs` | 综合练习: FizzBuzz |
+| 18 | `score_analyzer.rs` | 综合练习: 成绩分析器 |
+
+---
+
+## intermediate/ — 中级概念
+
+| # | 文件 | 内容 |
+|---|---|---|
+| 1 | `structs_and_enums.rs` | 结构体(3种) + 枚举 + impl 方法 |
+| 2 | `patterns.rs` | 模式匹配深入: 解构/嵌套/@绑定/守卫 |
+| 3 | `option.rs` | Option 专题: match/if let/map/and_then |
+| 4 | `error_handling.rs` | 错误处理: Result/panic/`?` 运算符 |
+| 5 | `lifetimes.rs` | 生命周期: 标注/省略规则/struct 引用/'static |
+| 6 | `generics.rs` | 泛型: 函数/结构体/方法/Trait Bound |
+| 7 | `traits.rs` | 特型: 定义/实现/默认方法/Derive 宏 |
+| 8 | `vec_advanced.rs` | Vec 高级: sort/dedup/retain/windows/chunks |
+| 9 | `collections.rs` | 集合: HashMap/Entry API/HashSet/BTreeMap |
+
+---
+
+## intermediate_example/ — 综合实践 (图书管理系统)
+
+综合运用 basic + intermediate 全部知识点。
+
+详见 [intermediate_example/README.md](intermediate_example/README.md)
+
+---
+
+## advanced/ — 高级概念
+
+概念代码演示, 每个模块覆盖一个高级主题:
+
+| # | 文件 | 内容 |
+|---|---|---|
+| 1 | `smart_pointers.rs` | Box/Deref/Drop/Rc/Arc |
+| 2 | `interior_mutability.rs` | Cell/RefCell/Rc\<RefCell\> |
+| 3 | `unsafe_rust.rs` | 裸指针/unsafe块/FFI 概念 |
+| 4 | `macros.rs` | macro_rules! 声明宏 |
+| 5 | `concurrency.rs` | thread/mpsc/Mutex/Arc |
+| 6 | `async_intro.rs` | async/await/Future trait |
+| 7 | `io_advanced.rs` | Read/Write trait/BufReader/Path |
+| 8 | `networking.rs` | TcpListener/TcpStream/UDP/HTTP |
+| 9 | `database.rs` | 文件 CRUD 持久化 |
+
+> 这些模块只演示概念, 深度实战请看下方两个项目.
+
+---
+
+## advanced_data_pipeline/ — 数据流通 (文件 ↔ SQLite)
+
+**练习重点**: CLI 参数解析、文件 I/O、SQLite、日志系统。
+
+```bash
+cd advanced_data_pipeline
+cargo run -- import -f csv -t users --file data.csv
+cargo run -- export -f json -t users -o out.json
+cargo run -- list && cargo run -- show -t users && cargo run -- log
+```
+
+详见 [advanced_data_pipeline/README.md](advanced_data_pipeline/README.md)
+
+---
+
+## advanced_data_flow/ — 异步数据流 (async PG + 并发)
+
+**练习重点**: async/await、tokio、sqlx(PostgreSQL)、并发写竞争、egui 桌面界面。
+
+```bash
+cd advanced_data_flow
+cargo run -- gui                     # 启动 egui 桌面窗口
+cargo run -- import -f csv -t users --file data.csv
+cargo run -- contention              # 写竞争三策略演示
+```
+
+详见 [advanced_data_flow/README.md](advanced_data_flow/README.md)
+
+---
 
 ## 使用方法
 
-### 运行时学习（推荐）
-
 ```bash
-cd basic
-cargo run      # 终端逐模块输出教学说明和代码演示
+# 概念学习 (basic/intermediate/advanced)
+cd basic && cargo run && cargo run -- ownership_and_refs
+cd intermediate && cargo run && cargo run -- error_handling
+cd advanced && cargo run && cargo run -- smart_pointers
+
+# 综合实践
+cd intermediate_example && cargo run
+
+# 项目实战
+cd advanced_data_pipeline && cargo run -- help
+cd advanced_data_flow && cargo run -- help
 ```
 
-### 生成文档
-
-```bash
-cd basic
-cargo doc --open       # 生成 HTML 文档并在浏览器打开
-```
-
-每个模块的 `//!` 和 `///` 注释会被 `rustdoc` 渲染成结构化说明页面。
-
-## 内容来源
-
-主要参考 **Rust 官方设计手册**及标准库文档，结合实践整理。

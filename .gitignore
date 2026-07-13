@@ -1,2 +1,5 @@
-basic/target
+# Rust 编译产物
+target/
+
+# 临时文件
 Agent.md
