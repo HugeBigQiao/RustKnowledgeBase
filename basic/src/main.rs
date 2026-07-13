@@ -150,6 +150,7 @@ mod return_flow;
 mod ownership_and_refs;
 mod compound_types;
 mod vec_type;
+mod sandbox;
 mod fizzbuzz;
 mod score_analyzer;
 
@@ -177,6 +178,7 @@ fn main() {
         Some("ownership_and_refs") => ownership_and_refs::run(),
         Some("compound_types") => compound_types::run(),
         Some("vec_type") => vec_type::run(),
+                Some("sandbox") => sandbox::run(),
         Some("fizzbuzz") => fizzbuzz::run(),
         Some("score_analyzer") => score_analyzer::run(),
         Some(other) => {

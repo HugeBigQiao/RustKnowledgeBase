@@ -16,6 +16,7 @@ mod async_intro;
 mod io_advanced;
 mod networking;
 mod database;
+mod sandbox;
 
 use std::env;
 
@@ -37,6 +38,7 @@ fn main() {
         "io_advanced" => io_advanced::run(),
         "networking" => networking::run(),
         "database" => database::run(),
+                "sandbox" => sandbox::run(),
         _ => {
             println!("未知模块: {}\n", args[1]);
             print_help();

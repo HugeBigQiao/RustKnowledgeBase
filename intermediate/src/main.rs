@@ -9,6 +9,7 @@ mod traits;
 mod vec_advanced;
 mod collections;
 mod lifetimes;
+mod sandbox;
 
 fn main() {
     let arg = std::env::args().nth(1);
@@ -23,6 +24,7 @@ fn main() {
         Some("vec_advanced") => vec_advanced::run(),
         Some("collections") => collections::run(),
         Some("lifetimes") => lifetimes::run(),
+                Some("sandbox") => sandbox::run(),
         Some(other) => {
             println!("未知模块: {}", other);
             print_help();
