@@ -139,8 +139,8 @@ mod base_type;
 mod hello_world;
 mod bit_ops;
 mod operator;
+mod compound_types;
 mod if_flow;
-mod chain_call;
 mod closure;
 mod while_flow;
 mod loop_flow;
@@ -148,7 +148,7 @@ mod for_flow;
 mod match_flow;
 mod return_flow;
 mod ownership_and_refs;
-mod compound_types;
+mod chain_call;
 mod vec_type;
 mod sandbox;
 mod fizzbuzz;
@@ -167,8 +167,8 @@ fn main() {
         Some("hello_world") => hello_world::run(),
         Some("bit_ops") => bit_ops::run(),
         Some("operator") => operator::run(),
+        Some("compound_types") => compound_types::run(),
         Some("if_flow") => if_flow::run(),
-        Some("chain_call") => chain_call::run(),
         Some("closure") => closure::run(),
         Some("while_flow") => while_flow::run(),
         Some("loop_flow") => loop_flow::run(),
@@ -176,9 +176,9 @@ fn main() {
         Some("match_flow") => match_flow::run(),
         Some("return_flow") => return_flow::run(),
         Some("ownership_and_refs") => ownership_and_refs::run(),
-        Some("compound_types") => compound_types::run(),
+        Some("chain_call") => chain_call::run(),
         Some("vec_type") => vec_type::run(),
-                Some("sandbox") => sandbox::run(),
+        Some("sandbox") => sandbox::run(),
         Some("fizzbuzz") => fizzbuzz::run(),
         Some("score_analyzer") => score_analyzer::run(),
         Some(other) => {
@@ -193,8 +193,8 @@ fn main() {
 fn print_help() {
     println!("用法: cargo run -- <模块名>");
     println!("可用模块:");
-    println!("  hello_world, base_type, bit_ops, operator, if_flow, chain_call");
-    println!("  closure, while_flow, loop_flow, for_flow, match_flow");
-    println!("  return_flow, ownership_and_refs, compound_types, vec_type");
-    println!("  fizzbuzz, score_analyzer");
+    println!("  hello_world, base_type, bit_ops, operator, compound_types, if_flow");
+    println!("  chain_call, closure, while_flow, loop_flow, for_flow, match_flow");
+    println!("  return_flow, ownership_and_refs, vec_type");
+    println!("  fizzbuzz, score_analyzer, sandbox");
 }

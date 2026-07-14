@@ -26,15 +26,14 @@ pub fn run() {
     }
     println!("从 3 开始翻倍, 直到超过 100: {} (3→6→12→...→192 退出)", n);
 
-    // 比如逐个 pop Vec 直到为空:
-    let mut v = vec![1, 2, 3];
-    print!("从 Vec 逐个 pop: ");
-    while let Some(val) = v.pop() {
-        print!("{} ", val);
+    // 比如累加直到超过目标值(不知道加到第几个数会超过):
+    let mut sum = 0;
+    let mut i = 0;
+    while sum <= 50 {
+        i += 1;
+        sum += i;
     }
-    println!("(Vec 空了, pop 返回 None, 退出)");
-    // 上面是 while let 语法: 当 = 右边的模式匹配成功时执行循环体.
-    // 和 match 类似, 但只关心"匹配成功"的情况.
+    println!("1+2+...+{} = {} (首次超过 50, 退出)", i, sum);
 
     // ===== continue: 跳过本次循环 =====
     // continue 让循环立即跳到下一次迭代, 不执行 continue 后面的代码.

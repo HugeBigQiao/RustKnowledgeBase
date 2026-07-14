@@ -78,7 +78,7 @@ pub fn run() {
     let word = "Rust";
     print!("\"Rust\" 的每个字符: ");
     for c in word.chars() {
-        print!("\'{}\' ", c);
+        print!("'{}' ", c);
     }
     println!();
     // 注意: for c in word 不行! &str 没有直接实现 IntoIterator.
@@ -91,19 +91,34 @@ pub fn run() {
         println!("  colors[{}] = {}", i, colors[i]);
     }
 
-    // ===== 迭代器: .iter() =====
-    // for 循环本质是"对迭代器遍历". .iter() 显式创建迭代器.
+    // ===== 迭代器(Iterator) =====
+    // 迭代器是一个"数据流", 你可以一个一个地从里面拿值.
+    // Rust 中所有实现了 Iterator trait 的类型都是迭代器.
+    // 迭代器只有一个核心方法: .next(), 每调一次返回一个值(包在 Some 里),
+    // 拿完了就返回 None.
+    //
+    // for 和迭代器的关系:
+    //   for 是"语法糖", 它内部就是反复调用 .next() 直到返回 None.
+    //   for item in xxx 等价于:
+    //     { let mut it = xxx.into_iter(); loop { match it.next() { Some(v) => ..., None => break } } }
+    //   所以 for 负责"循环控制", 迭代器负责"产出一串值".
+    //   可以理解为: for 是发动机, 迭代器是燃料管.
     println!();
     let v = vec![1, 2, 3];
+
+    // for 自动调用 into_iter(), 下面三种写法等价:
+    //   for n in &v       -> 拿到 &i32, 不消耗 v
+    //   for n in v.iter() -> 同上, 显式写法
+    //   for n in v        -> 拿到 i32, 消耗 v (所有权转移)
     print!("iter() 遍历: ");
-    for n in v.iter() {  // 效果和 for &v 一样
+    for n in v.iter() {
         print!("{} ", n);
     }
     println!();
 
-    // 迭代器可以手动调用 .next() 逐个取值
+    // 手动模拟 for 的原理: 创建迭代器, 自己调 .next()
     let mut it = v.iter();
     println!("手动 next(): {:?}, {:?}, {:?}, {:?}",
         it.next(), it.next(), it.next(), it.next());
-    // 前三个返回 Some(&值), 第四个返回 None(迭代器耗尽)
+    // 前三个返回 Some(&1), Some(&2), Some(&3), 第四个返回 None(迭代器耗尽)
 }
