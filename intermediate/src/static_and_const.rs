@@ -47,6 +47,21 @@ pub fn run() {
     // --- const 的关键特性 ---
     //
     // 1. 运行时不存在：没有内存地址，没有栈/堆分配，纯粹是编译期替换。
+    //
+    //    那为什么 &MAX_SCORE 报错, 但 APP_NAME: &str 却合法?
+    //
+    //    这是两个完全不同的操作:
+    //      const APP_NAME: &str = "MyApp";
+    //      ↓ 这个 const 的值本身就是 &str (一个胖指针, 指向二进制里的字面量)。
+    //        当你用 APP_NAME 时, 拿到的是一个现成的引用, 不需要"对 const 取地址"。
+    //
+    //      const MAX_SCORE: i32 = 100;
+    //      &MAX_SCORE
+    //      ↓ 这里的 & 是"把 MAX_SCORE 这个 const 当成变量, 对变量取地址"。
+    //        但 const 运行时不存在, 没有变量、没有内存位置 — 指不到任何东西。
+    //
+    //    一句话: const 类型是引用 = 值本身就是指针(没问题);
+    //           对 const 取地址 & = 试图指向一个不存在的东西(报错)。
     //    println!("{:p}", &MAX_SCORE);  // 编译报错！const 没有地址可指
     //
     // 2. 永远不可变：没有 const mut 这种东西。想"可变全局"用 static + OnceLock。

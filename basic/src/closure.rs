@@ -29,13 +29,14 @@ pub fn run() {
 
     // ===== 闭包与函数的区别: 捕获环境变量 =====
     println!("\n===== 闭包与函数的区别: 捕获环境变量 =====");
-    let base = 10;
+    let base = 10;                                   // base: i32 Copy
     // 普通函数看不到外面的 base, 闭包可以:
-    let add_base = |x| x + base; // 闭包"捕获"了 base
+    let add_base = |x| x + base;                     // 闭包捕获 base — 因为 i32 是 Copy, 用的是不可变借用 Fn
     println!("base = {}, |x| x + base,  输入 5 → {}", base, add_base(5));
+    // base 仍可用: 只被借了, 没有被 move
 
-    let prefix = "Result: ";
-    let labeled = |v| format!("{}{}", prefix, v); // 捕获了 prefix
+    let prefix = "Result: ";                         // prefix: &str, Copy (引用本身可复制)
+    let labeled = |v| format!("{}{}", prefix, v);   // 捕获 prefix: &str 是 Copy, 不可变借用
     println!("labeled(42) = \"{}\"", labeled(42));
 
     // ===== 闭包用在迭代器里 =====
@@ -43,16 +44,8 @@ pub fn run() {
     let nums = vec![1, 2, 3, 4, 5];
 
     // ===== map: 对每个元素做"映射/转换" =====
-    // map 的意思是把集合里的每个元素按照你给的规则"变成"另一个值,
-    // 就像流水线: 每个零件进去, 经过一道工序, 出来时已经变了样.
-    // 元素数量不变, 只是每个元素被转换了.
-    //
-    // nums = [1, 2, 3, 4, 5]
-    //   map(|x| x * 2) ↓
-    //          [2, 4, 6, 8, 10]
-    //
-    // .collect() 把迭代器"收集"回 Vec(或其他集合), 因为 map 返回的还是迭代器.
-    let doubled: Vec<i32> = nums.iter().map(|x| x * 2).collect();
+    // 所有权: .iter() 借 Vec → map 闭包参数 &i32 → collect 收集到新 Vec → 原 Vec 仍在
+    let doubled: Vec<i32> = nums.iter().map(|x| x * 2).collect();  // |x| x*2: x 是 &i32, * 隐式解引用后 * 2
     println!("map(|x| x*2)     : {:?}", doubled);
 
     // ===== filter: 按条件"筛选/过滤"元素 =====
@@ -83,13 +76,12 @@ pub fn run() {
     println!("filter 偶数      : {:?}", evens);
 
     // ===== map + filter 组合(链式调用) =====
-    // 迭代器可以一直 .操作, 像流水线一道工序接一道.
-    // 注意执行顺序: 先 filter 后 map, 按 . 的先后顺序执行.
+    // 所有权: 整条链都借 nums, 直到 collect 产生新 Vec。
     let result: Vec<i32> = nums
-        .iter()
-        .filter(|x| **x > 2) // 第 1 步: 筛掉 ≤2 的 → [3, 4, 5]
-        .map(|x| x * 10) // 第 2 步: 每个 ×10    → [30, 40, 50]
-        .collect(); // 第 3 步: 收集回 Vec
+        .iter()                                        // 借 nums → 产生 &i32 迭代器
+        .filter(|x| **x > 2)                           // x: &&i32 → **x 解两层拿到 i32
+        .map(|x| x * 10)                               // x: &i32 → * 隐式解引用 (也可以写 **x*10)
+        .collect();                                    // 消耗迭代器, 产生新 Vec<i32>
     println!(">2 的 ×10      : {:?}", result);
 
     // ===== 排序: sort / sort_by / sort_by_key =====
@@ -117,9 +109,9 @@ pub fn run() {
 
     let mut words = vec!["banana", "apple", "cherry"];
 
-    // --- sort(): 默认排序(字符串按字典序) ---
+    // --- sort(): 默认排序。&mut self — 可变借用, 原地改变顺序。元素所有权不变。---
     words.sort();
-    println!("sort() 字典序  : {:?}", words); // ["apple", "banana", "cherry"]
+    println!("sort() 字典序  : {:?}", words);
 
     // --- sort_by(): 自定义规则 ---
     // |a, b| a.len().cmp(&b.len()) 拆解:
@@ -146,10 +138,10 @@ pub fn run() {
     println!("sort_by_key 键  : {:?}", words2);
 
     // ===== 闭包的三种类型 =====
-    println!("\n===== 闭包的三种类型 =====");
-    println!("编译器根据闭包怎么用变量, 自动选一种:");
-    println!("  FnOnce : 拿走捕获变量的所有权(只能调用一次)");
-    println!("  FnMut  : 可变借用捕获的变量(可以修改)");
-    println!("  Fn     : 不可变借用捕获的变量(只读)");
-    println!("一般写代码不用管, map/filter 之类的自动适配.");
+    println!("\n===== 闭包的三种类型 ====");
+    println!("编译器根据闭包怎么用捕获的变量, 自动选一种:");
+    println!("  FnOnce : 拿走捕获变量的所有权 (只能调用一次) — 如 move 闭包");
+    println!("  FnMut  : 可变借用捕获的变量 (可以修改)  — 如 sort_by 里的闭包");
+    println!("  Fn     : 不可变借用捕获的变量 (只读)    — 如 map/filter 里的闭包");
+    println!("捕获的变量如果是 Copy 类型 (i32, &str), 只触发 Fn (不会 move)。");
 }

@@ -17,7 +17,7 @@ pub fn run() {
     );
     println!("----------------------------------------");
 
-    let mut results: Vec<String> = Vec::new();
+    let mut results: Vec<String> = Vec::new();       // results 拥有 Vec 和里面的 String
 
     // ==== for + match 元组模式 ====
     // match 后面不只能放单个值, 还可以放元组!
@@ -28,24 +28,24 @@ pub fn run() {
     //   (false, true)  → 只是 5 的倍数
     //   (false, false) → 都不是
     // 这样写比嵌套 if/else 清晰得多: 四种情况一目了然, 编译器还会检查是否遗漏.
-    for i in start..=end {
+    for i in start..=end {                           // i: i32 Copy, 每次循环独立
         let text = match (i % fizz_num == 0, i % buzz_num == 0) {
-            (true, true) => String::from("FizzBuzz"),
+            (true, true) => String::from("FizzBuzz"),// 新建 String — 所有权在 text
             (true, false) => String::from("Fizz"),
             (false, true) => String::from("Buzz"),
-            (false, false) => i.to_string(),
+            (false, false) => i.to_string(),          // to_string() 新建 String
         };
         println!("  {}", text);
-        results.push(text);
+        results.push(text);                          // text 所有权移入 results! text 不再可用
     }
 
     // ── 闭包 filter: 只统计包含字母的结果 ──
+    // 所有权: .iter() 借 results → filter 闭包借每个元素 → collect 产生新 Vec<&String>
+    // 新 Vec 里的元素是 &String (只借不拥有), results 仍拥有所有 String。
     let special: Vec<&String> = results
-        .iter()
-        .filter(|s| s.as_bytes()[0].is_ascii_alphabetic())
-        .collect();
-    // s.as_bytes()[0] 取第一个字节, is_ascii_alphabetic() 判断是不是字母.
-    // "FizzBuzz"/"Fizz"/"Buzz" 首字母都是大写字母.
+        .iter()                                        // 借 results
+        .filter(|s| s.as_bytes()[0].is_ascii_alphabetic()) // s: &&String, 自动解引用调用方法
+        .collect();                                    // 收集为 Vec<&String>
 
     println!("----------------------------------------");
     println!(

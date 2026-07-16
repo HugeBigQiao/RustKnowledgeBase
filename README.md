@@ -6,8 +6,8 @@
 
 ```
 RustLearning/
-├── basic/                     ← 零基础入门 (18个模块)
-├── intermediate/              ← 中级概念 (10个模块)
+├── basic/                     ← 零基础入门 (19个模块)
+├── intermediate/              ← 中级概念 (9个模块)
 ├── intermediate_example/      ← 综合实践 (图书管理系统)
 ├── advanced/                  ← 高级概念 (9个模块)
 ├── advanced_data_pipeline/    ← 项目1: 数据流通 (文件 ↔ SQLite)
@@ -128,6 +128,7 @@ Rust 的所有权系统重度依赖堆和栈的概念, 建议先了解:
 | 16 | `closure.rs` | 闭包: map/filter/sort_by (依赖迭代器与借用) |
 | 17 | `fizzbuzz.rs` | 综合练习: FizzBuzz |
 | 18 | `score_analyzer.rs` | 综合练习: 成绩分析器 |
+| 19 | `vec_advanced.rs` | Vec 高级: sort/dedup/retain/windows/chunks |
 
 ---
 
@@ -135,16 +136,15 @@ Rust 的所有权系统重度依赖堆和栈的概念, 建议先了解:
 
 | # | 文件 | 内容 |
 |---|---|---|
-| 1 | `structs_and_enums.rs` | 结构体(3种) + 枚举 + impl 方法 |
-| 2 | `patterns.rs` | 模式匹配深入: 解构/嵌套/@绑定/守卫 |
-| 3 | `option.rs` | Option 专题: match/if let/map/and_then |
-| 4 | `error_handling.rs` | 错误处理: Result/panic/`?` 运算符 |
-| 5 | `static_and_const.rs` | const 与 static: 编译期常量/全局变量/与 let 的区别/单例模式 |
-| 6 | `lifetimes.rs` | 生命周期: 标注/省略规则/struct 引用/'static |
-| 7 | `generics.rs` | 泛型: 函数/结构体/方法/Trait Bound |
-| 8 | `traits.rs` | 特型: 定义/实现/默认方法/Derive 宏 |
-| 9 | `vec_advanced.rs` | Vec 高级: sort/dedup/retain/windows/chunks |
-| 10 | `collections.rs` | 集合: HashMap/Entry API/HashSet/BTreeMap |
+| 1 | `static_and_const.rs` | const 与 static: 编译期常量/全局变量/与 let 的区别/单例模式 |
+| 2 | `structs_and_enums.rs` | 结构体(3种) + 枚举 + impl 方法 |
+| 3 | `patterns.rs` | 模式匹配深入: 解构/嵌套/@绑定/守卫 |
+| 4 | `option.rs` | Option 专题: match/if let/map/and_then |
+| 5 | `error_handling.rs` | 错误处理: Result/panic/`?` 运算符 |
+| 6 | `generics.rs` | 泛型: 函数/结构体/方法/Trait Bound |
+| 7 | `traits.rs` | 特型: 定义/实现/默认方法/Derive 宏 |
+| 8 | `lifetimes.rs` | 生命周期: 标注/省略规则/struct 引用/'static |
+| 9 | `collections.rs` | 集合: HashMap/Entry API/HashSet/BTreeMap |
 
 ---
 

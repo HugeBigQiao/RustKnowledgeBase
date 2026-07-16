@@ -16,61 +16,78 @@ pub fn run() {
     println!("图书馆已初始化, 当前藏书: {}本", lib.stats().total);
 
     // ===== 2. 添加图书(Result 错误处理) =====
+    // ID 由 demo 内部计数器管理 (CLI 版使用 static mut)。
+    let mut next_id: u32 = 1;                         // 局部 ID 计数器, 仅 demo 内使用
+
     println!("\n--- 添加图书 ---");
     match lib.add_book(
+        next_id,                                      // id 参数: 显式传入
         "Rust 程序设计".into(),
         "Klabnik".into(),
         Category::Technology,
         2018,
         vec!["rust", "编程", "入门"],
     ) {
-        Ok(id) => println!("添加成功, ID={}", id),
+        Ok(id) => {
+            println!("添加成功, ID={}", id);
+            next_id = id + 1;                          // ID 自增
+        }
         Err(e) => println!("添加失败: {}", e),
     }
 
     lib.add_book(
+        next_id,
         "三体".into(),
         "刘慈欣".into(),
         Category::Fiction,
         2008,
         vec!["科幻", "中国"],
     ).ok();
+    next_id += 1;
 
     lib.add_book(
+        next_id,
         "人类简史".into(),
         "Harari".into(),
         Category::History,
         2014,
         vec!["历史", "科普"],
     ).ok();
+    next_id += 1;
 
     lib.add_book(
+        next_id,
         "算法导论".into(),
         "CLRS".into(),
         Category::Technology,
         2009,
         vec!["算法", "计算机科学", "经典"],
     ).ok();
+    next_id += 1;
 
     lib.add_book(
+        next_id,
         "苏菲的世界".into(),
         "Gaarder".into(),
         Category::Philosophy,
         1991,
         vec!["哲学", "小说", "入门"],
     ).ok();
+    next_id += 1;
 
     lib.add_book(
+        next_id,
         "时间简史".into(),
         "Hawking".into(),
         Category::Science,
         1988,
         vec!["物理", "科普", "经典"],
     ).ok();
+    next_id += 1;
 
     // ===== 3. 尝试错误输入(错误处理演示) =====
     println!("\n--- 错误处理演示 ---");
-    match lib.add_book("".into(), "?".into(), Category::Fiction, 2000, vec![]) {
+    match lib.add_book(next_id, "".into(), "?".into(), Category::Fiction, 2000, vec![]) {
         Ok(id) => println!("添加成功 ID={}", id),
         Err(e) => println!("预期错误: {}", e),
     }

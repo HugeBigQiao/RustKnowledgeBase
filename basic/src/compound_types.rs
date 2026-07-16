@@ -22,6 +22,7 @@ pub fn run() {
     println!("  用 .0 .1 .2 按位置索引访问");
 
     // 模式解构: 一次性把元组的各个位置拆出来
+    // 所有权: tup 的所有字段都是 Copy 类型, 解构时复制值, tup 仍可用。
     let (x, y, z) = tup;
     println!("  解构: x = {}, y = {}, z = {} (let (x, y, z) = tup)", x, y, z);
 
@@ -73,14 +74,15 @@ pub fn run() {
     // s1.push_str("!");  // 编译报错! &str 没有 push_str 方法
 
     // --- String: 拥有所有权的堆分配字符串 ---
-    // 创建 String 的三种方式:
-    let s2 = String::from("hello");      // 方式1: String::from(&str)
-    let s3 = "world".to_string();        // 方式2: &str.to_string()
-    let mut s4 = String::new();           // 方式3: 空 String
+    // 创建 String 的三种方式 — 每种都新建 String, 所有权归变量:
+    let s2 = String::from("hello");      // 方式1: String::from(&str) — 从 &str 创建 owned String
+    let s3 = "world".to_string();        // 方式2: &str.to_string() — 同上, 调方法创建
+    let mut s4 = String::new();           // 方式3: 空 String — 不占堆空间(容量为 0)
     s4.push_str("rust");                  // 往空 String 追加内容
     println!("String: \"{}\" \"{}\" \"{}\" (堆分配, 有所有权)", s2, s3, s4);
 
     // String 可变, 可以修改:
+    // 所有权: push_str/push 是 &mut self 方法 — 可变借用, 原地修改 s5。
     let mut s5 = String::from("Hello");
     s5.push_str(", World");   // 追加 &str
     s5.push('!');              // 追加单个 char
@@ -120,6 +122,7 @@ pub fn run() {
 
     // String → 逐个 char: .chars() 方法返回一个迭代器(后面循环细讲)
     // 这里先看一眼: 把 String 拆成一个个 char.
+    // 所有权: .chars() 借 word 来生成迭代器, word 本身不消耗。
     let word = String::from("Rust");
     print!("  \"{}\" 的每个字符: ", word);
     for c in word.chars() {

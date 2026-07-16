@@ -39,6 +39,8 @@ pub fn run() {
     // ===== 显式 return: 提前退出 =====
     // return 关键字让函数立即结束, 返回一个值.
     // 函数后面的代码不会被执行.
+    // 所有权: score: i32 Copy → 只复制, 不消耗调用方变量。
+    //   返回 &'static str — 字面量内嵌在二进制中, 永远有效, 不需要所有权转移。
     fn grade(score: i32) -> &'static str {
         if score < 0 {
             return "分数不能是负数!";  // 提前退出, 后面不执行
@@ -58,6 +60,7 @@ pub fn run() {
     // ===== 提前 return 的典型场景: 参数校验(卫语句) =====
     // 在函数开头用 if + return 做"卫语句"(guard clause), 提前拒绝不合法输入.
     // 这样主体逻辑不用嵌套在 else 里, 代码更扁平.
+    // 所有权: name: &str — 借用, 不获取所有权。greet 只能读 name, 不能改也不能拿走。
     fn greet(name: &str) {
         if name.is_empty() {
             println!("名字不能为空!");

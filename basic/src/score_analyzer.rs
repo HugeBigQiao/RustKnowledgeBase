@@ -93,6 +93,7 @@ fn calc_pass_rate(scores: &Vec<i32>) -> f64 {
 /// 分析 10 个学生的成绩: 统计、等级评定、排名、及格率.
 pub fn run() {
     // --- 原始成绩数据 ---
+    // scores 拥有 Vec<i32>, 包含 10 个 i32 值 (Copy, 所以直接存在 Vec 堆内存里)。
     let scores = vec![85, 92, 78, 65, 95, 88, 73, 60, 98, 82];
 
     println!("原始成绩: {:?}", scores);
@@ -101,29 +102,33 @@ pub fn run() {
     // --- 基础统计(迭代器链) ---
     // 这里都不会消耗所有权，len，iter，sum方法内部都是&self的引用。
     let count = scores.len();
-    let total: i32 = scores.iter().sum();
+    let total: i32 = scores.iter().sum();            // .iter() 借 &self → sum 消费迭代器, 不消费 Vec
     let avg = total as f64 / count as f64; // as f64: i32 转 f64 避免截断
     println!("人数: {}", count);
     println!("总分: {}", total);
     println!("平均: {:.1}\n", avg);
 
     // --- 最值查找(for 循环) ---
+    // &scores: 借 Vec, find_min_max 返回 (i32, i32) — Copy 值, 不借原数据。
     let (min, max) = find_min_max(&scores);
     println!("最高分: {}", max);
     println!("最低分: {}\n", min);
 
     // --- 等级评定(match 范围模式) ---
+    // &scores: 借 Vec → print_grades 里面 for &s in scores 遍历, 不消耗。
     print_grades(&scores);
 
     // --- 统计各等级人数(闭包 filter) ---
+    // &scores: 借 Vec → filter 链式操作, 只借不消耗。
     print_grade_distribution(&scores);
 
     // --- 排名(闭包 sort_by) ---
-    let mut ranked = scores.clone(); // clone: 深拷贝, 不影响原数据
-    ranked.sort_by(|a, b| b.cmp(a)); // 从大到小排序
+    let mut ranked = scores.clone(); // clone: 深拷贝, 不影响原数据。ranked 拥有新的 Vec<i32>。
+    ranked.sort_by(|a, b| b.cmp(a)); // sort_by: &mut self 可变借用, 原地排序, ranked 被修改
     println!("排名(高->低): {:?}\n", ranked);
 
     // --- 嵌套函数: 计算及格率 ---
+    // &scores: 借 Vec → calc_pass_rate 只读操作, 返回 f64。
     let pass_rate = calc_pass_rate(&scores);
     println!("及格率: {:.1}%", pass_rate);
 }

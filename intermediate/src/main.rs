@@ -10,7 +10,6 @@ mod sandbox;
 mod static_and_const;
 mod structs_and_enums;
 mod traits;
-mod vec_advanced;
 
 fn main() {
     let arg = std::env::args().nth(1);
@@ -22,7 +21,6 @@ fn main() {
         Some("error_handling") => error_handling::run(),
         Some("generics") => generics::run(),
         Some("traits") => traits::run(),
-        Some("vec_advanced") => vec_advanced::run(),
         Some("collections") => collections::run(),
         Some("static_and_const") => static_and_const::run(),
         Some("lifetimes") => lifetimes::run(),

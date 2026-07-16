@@ -18,7 +18,7 @@ pub fn run() {
     println!("  上面用的是 {{0}} 索引占位符：按位置编号填入，可复用");
     println!("{name} 说：{msg}", name = "Rust", msg = "你好");
     println!("  上面用的是 {{name}} 命名占位符：按变量名填入");
-    let nums = vec![1, 2, 3];
+    let nums = vec![1, 2, 3];                       // vec! 创建 Vec<i32> — nums 拥有这个 Vec (i32 是 Copy, 值被复制进 Vec)
     println!("调试输出：{:?}", nums);
     println!("  上面用的是 {{:?}} 调试占位符：打印 Debug 格式");
     println!();

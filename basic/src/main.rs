@@ -150,6 +150,7 @@ mod return_flow;
 mod ownership_and_refs;
 mod chain_call;
 mod vec_type;
+mod vec_advanced;
 mod sandbox;
 mod fizzbuzz;
 mod score_analyzer;
@@ -158,9 +159,12 @@ fn main() {
     // ===== std::env::args: 读取命令行参数 =====
     // `std::env::args()` 返回迭代器，跳过第一个(程序名)
     // `.nth(1)` 取第二个参数(即用户输入的第一个参数)
+    // 所有权: nth(1) 返回 Option<String> — arg 拥有这个 String
     let arg = std::env::args().nth(1);
 
     // match 匹配 Option 的 Some/None
+    // 所有权: as_deref() 将 Option<String> → Option<&str>
+    //   不拿走所有权 — 只是借用 arg 内部 String 的视图
     match arg.as_deref() {
         // `as_deref()`: Option<String> → Option<&str> (不拿走所有权)
         Some("base_type") => base_type::run(),
@@ -178,6 +182,7 @@ fn main() {
         Some("ownership_and_refs") => ownership_and_refs::run(),
         Some("chain_call") => chain_call::run(),
         Some("vec_type") => vec_type::run(),
+        Some("vec_advanced") => vec_advanced::run(),
         Some("sandbox") => sandbox::run(),
         Some("fizzbuzz") => fizzbuzz::run(),
         Some("score_analyzer") => score_analyzer::run(),

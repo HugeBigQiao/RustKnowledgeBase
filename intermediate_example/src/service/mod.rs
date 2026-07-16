@@ -1,1 +1,2 @@
-﻿pub mod demo;
+﻿pub mod cli;
+pub mod demo;

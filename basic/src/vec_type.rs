@@ -7,6 +7,8 @@
 /// - 所有元素必须是同一类型(`Vec<T>` 中的 T).
 /// - 存在堆上, 可以在运行时增长或缩小.
 /// - 有所有权: Vec 被释放时, 里面的元素也一起释放.
+/// - push 将元素所有权移入 Vec; pop 将所有权移出。
+/// - .get() 和 for &v 都是借用, 不取走所有权。
 ///
 /// 关于 `<>` 尖括号(泛型):
 ///   `<>` 里面放的是"类型参数"——就像一个占位符, 等你填入具体类型.
@@ -25,28 +27,27 @@
 ///   `vec![1, 2, 3]` → Vec, `Vec<i32>`
 pub fn run() {
     // ===== 创建 Vec =====
-    // vec![] 宏: 最常用的创建方式.
+    // vec![] 宏: 最常用的创建方式。i32 是 Copy, 三个数字原样复制进堆上的 Vec。
     let v1: Vec<i32> = vec![10, 20, 30];
     println!("vec![10, 20, 30] = {:?}", v1);
 
-    // Vec::new(): 创建空 Vec, 需要标注类型.
-    let mut v2: Vec<i32> = Vec::new();
+    // Vec::new(): 创建空 Vec, 需要标注类型 (编译器不知道 T 是什么)。
+    let mut v2: Vec<i32> = Vec::new();               // 空 Vec, 所有权归 v2
     println!("Vec::new() = {:?} (空 Vec, 长度: {})", v2, v2.len());
 
-    // vec![值; 数量]: 创建填充了 N 个相同值的 Vec.
-    let v3 = vec![0; 5];  // 5 个 0
+    // vec![值; 数量]: 创建填充了 N 个相同值的 Vec。i32 是 Copy → 数量份值被复制。
+    let v3 = vec![0; 5];                             // 5 个 0
     println!("vec![0; 5] = {:?}", v3);
 
     // ===== 添加和删除元素 =====
-    // push: 往末尾追加元素. Vec 必须有 mut 才能 push.
-    v2.push(100);
+    // push: 往末尾追加元素。元素所有权移入 Vec。Vec 必须有 mut 才能 push。
+    v2.push(100);                                    // 100: i32 Copy — 复制一份进 Vec, 不是移走
     v2.push(200);
     v2.push(300);
     println!("push 三次后: {:?}", v2);
 
-    // pop: 从末尾取出并移除元素. 返回 Option<T>:
-    //   Some(值) 表示取到了, None 表示 Vec 是空的.
-    let last = v2.pop();
+    // pop: 从末尾取出并移除元素。返回 Option<T> — Some(值) 所有权移出, None 表示空。
+    let last = v2.pop();                             // last 拥有 300 (所有权利从 Vec 移到 last)
     println!("pop() = {:?}, 剩下: {:?}", last, v2);
 
     // ===== 访问元素 =====
@@ -80,12 +81,12 @@ pub fn run() {
     let c = b.clone();  // b 和 c 各自独立
     println!("b = {:?}, c = {:?} (clone 后各自独立)", b, c);
 
-    // ===== 遍历 Vec (后面学循环时细讲) =====
-    // 先看一眼语法: for 循环逐一取出元素.
-    // 取引用 & 遍历: 不转移所有权, 原 Vec 还能用.
+    // ===== 遍历 Vec =====
+    // 借用遍历: &nums 不获取所有权, nums 之后还能用。
     let nums = vec![10, 20, 30];
-    for n in &nums {
+    for n in &nums {                                 // n: &i32 — 每个元素借来的引用
         print!("{} ", n);
     }
     println!("<- 遍历后 nums 还能用: {:?}", nums);
+    // 对比: for n in nums 会消耗 Vec, 之后 nums 不可用 (消耗性遍历)。
 }
