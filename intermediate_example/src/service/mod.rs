@@ -1,2 +1,3 @@
 ﻿pub mod cli;
-pub mod demo;
+pub mod cli_list;
+pub mod cli_query;

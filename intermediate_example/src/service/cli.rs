@@ -1,207 +1,97 @@
-//! CLI 命令处理: 每个函数对应一个用户命令。
+//! CLI 修改命令: 添加 / 删除 / 修改图书。
 //!
-//! 本文件集中展示 intermediate 的核心概念在实战中的应用:
-//!
-//! **所有权 & 借用:**
-//! - `&Library` — 只读查询, 不消耗 library
-//! - `&mut Library` — 修改操作, 可变借用
-//! - `Option<T>` — 可能不存在的值 (get_book 返回 Option<&Book>)
-//! - `Result<T, E>` — 可能失败的操作 (add/remove/modify)
-//!
-//! **模式匹配:**
-//! - `if let Some(x) = opt` — 只关心 Some 分支
-//! - `match result { Ok(v) => ..., Err(e) => ... }` — 穷尽处理
-//!
-//! **中间知识点:**
-//! - `?` 运算符 — 错误传播
-//! - `String` → `&str` 转换 — trim, parse, to_lowercase
-//! - 迭代器 + collect — search 返回 Vec
-//! - Vec 高级 — sort_by, filter
-//! - HashMap/Vec/BTreeMap — 统计信息
-//! - Display trait — 格式化输出
+//! 核心: 所有权转移 — String 参数移入函数 → 最终移入 HashMap;
+//!       可变借用 &mut Library — 写操作独占, 读操作共享;
+//!       Result<T,E> — 不崩溃, 不 panic;
+//!       Option<T> 做"可选更新"载体 (modify_book): None = 不改, Some(v) = 更新。
 
 use std::io::{self, Write};
 
 use crate::error::LibraryError;
-use crate::models::book::Book;
 use crate::models::category::Category;
 use crate::models::library::Library;
 
 // ── 辅助: 读取一行输入 ──
-// 所有权: 返回 String (owned), 调用方获得所有权。
-fn read_line(prompt: &str) -> String {
-    print!("{}", prompt);                            // &str 借用, print! 只读
-    io::stdout().flush().unwrap();
-    let mut input = String::new();
-    // read_line 需要 &mut input — 可变借用, 追写数据到 String
+// prompt: &str — 借用, 不消耗; 返回 String (owned) — 所有权移给调用方
+pub(crate) fn read_line(prompt: &str) -> String {
+    // 为什么先 print 再 flush? stdout 有行缓冲, print! 没有 \n, 必须手动 flush 才能显示
+    print!("{}", prompt);
+    io::stdout().flush().unwrap(); // flush → Result<()>, unwrap 取出值 (通常不会失败)
+
+    let mut input = String::new(); // 空 String, 栈: 结构体 24B, 堆: 尚无分配
+    // &mut input: 可变借用 — read_line 往 input 里追加数据 (读到 \n 为止)
     io::stdin().read_line(&mut input).unwrap();
-    input.trim().to_string()                         // trim() 返回 &str (借用) → to_string() 创建新 String (owned)
+
+    // trim() → &str (借用 input, 不分配新内存)
+    // to_string() → 新 String (owned), 复制数据到堆上, 所有权返回给调用方
+    // 返回后 input 在此函数结束时 drop
+    input.trim().to_string()
 }
 
 // ── 辅助: 解析 u32 ──
-// 所有权: s: &str — 借用, 不消耗。
-fn parse_id(s: &str) -> Result<u32, String> {
-    // parse::<u32>() 返回 Result<u32, ParseIntError>
-    s.parse::<u32>().map_err(|e| format!("'{}' 不是有效的数字: {}", s, e))
-    // map_err: 把 ParseIntError → String, 统一错误类型
+// s: &str — 借用, 不消耗; 返回 Result<u32, String>
+// 用 String 而非 ParseIntError 做错误类型 — 方便直接 println! 打印
+pub(crate) fn parse_id(s: &str) -> Result<u32, String> {
+    s.parse::<u32>() // <u32>: turbofish 指定泛型; &self = &str, 不消耗 s
+        .map_err(|e| format!("'{}' 不是有效的数字: {}", s, e))
+    // map_err: 只在 Err 时执行, 把 ParseIntError → String; Ok 分支原样传递
 }
 
 // ═══════════════════════════════════════════════════════════════
 // 命令: add — 添加新书
 // ═══════════════════════════════════════════════════════════════
 
-/// 交互式添加图书: 依次询问书名/作者/分类/年份/标签。
-/// 参数: library — &mut Library, 可变借用 (要插入数据)。
-///       id — 由调用方从 static mut 全局计数器获取。
-/// 返回: Result<u32, LibraryError> — 成功返回分配的 ID。
+/// 交互式添加图书。
+/// - library: &mut Library — 可变借用, 要插入数据
+/// - id: u32 — Copy, 传值时自动复制
+/// 返回 Result<u32, LibraryError> — 成功返回分配的 ID
 pub fn cmd_add(library: &mut Library, id: u32) -> Result<u32, LibraryError> {
     println!("══════ 添加新书 (ID: {}) ══════", id);
 
-    // 书名 — read_line 返回 String (owned), 所有权移给 title
+    // 书名: read_line → String (owned), 所有权 → title
     let title = read_line("书名: ");
-    // 作者
+    // 作者: 同理
     let author = read_line("作者: ");
 
-    // 分类 — 展示选项, 用户输入或用数字选择
+    // 分类: 展示选项 → 读输入 → match 匹配
     println!("分类: 1=小说 2=科学 3=历史 4=技术 5=哲学 6=其他(自定义)");
-    let cat_input = read_line("选择 (1-6 或分类名): ");
+    let cat_input = read_line("选择 (1-6 或分类名): "); // String owned → cat_input
+
+    // as_str(): &String → &str (借用 cat_input), 生命周期 = cat_input 生命周期
     let category = match cat_input.as_str() {
-        // 数字选择 — Category 枚举变体
         "1" => Category::Fiction,
         "2" => Category::Science,
         "3" => Category::History,
         "4" => Category::Technology,
         "5" => Category::Philosophy,
         "6" => {
-            let other = read_line("  自定义分类名: ");
-            Category::Other(other)                   // String 移入 Other 变体
+            let other = read_line("  自定义分类名: "); // String owned
+            Category::Other(other) // other 所有权移入 Other 变体
         }
-        // 文字选择 — 使用 From<&str> trait 自动转换
-        other => Category::from(other),             // &str → Category, Category::from 在 category.rs 实现
-    };
-    println!("  已选择: {}", category);             // Display trait: Category 实现了 fmt::Display
+        other => Category::from(other), // From<&str> trait: &str → Category
+    }; // cat_input 不再使用, 作用域结束时 drop
+    println!("  已选择: {}", category); // Display trait
 
-    // 年份 — parse 返回 Result, 失败给默认
+    // 年份: parse → unwrap_or(0) 提供默认值, 不崩溃
     let year_str = read_line("出版年份: ");
-    let year: u32 = year_str.parse().unwrap_or(0);  // unwrap_or: 解析失败给默认值 0, 不崩溃
+    let year: u32 = year_str.parse().unwrap_or(0);
+    // year: u32 (Copy), year_str 不再使用但还存活
 
-    // 标签 — 逗号分隔, 转 Vec<&str>
+    // 标签: split → map trim → filter → collect
     let tags_str = read_line("标签 (逗号分隔, 如: rust,编程): ");
     let tags: Vec<&str> = if tags_str.is_empty() {
         vec![]
     } else {
-        // split 返回迭代器, 元素是 &str (借用 tags_str)
-        // map(|s| s.trim()) 去空白 → collect 进 Vec
-        // 注意: tags 的 &str 元素借用了 tags_str!
-        // 但 collect 后 tags_str 不再使用, 且下面的 add_book 会立刻把 &str 转成 String,
-        // 所以这里借用关系安全。
+        // split(',') 返回迭代器, 元素 &str 借用 tags_str
         tags_str.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()).collect()
-        // filter(|s| !s.is_empty()): 过滤空标签 (用户可能多打了逗号)
+        // ⚠️ 生命周期: collect 后 tags 中的 &str 借用了 tags_str
+        // 但下一行 add_book 马上把 &str → String, tags_str 在此之前存活, 安全
     };
 
-    // 调用 Library::add_book — id 由参数传入, 不再内部分配
+    // ── 所有权集中转移 ──
+    // title/author/category/tags 所有权全部移入 add_book → Book → HashMap
+    // 此后调用方不能再使用这些变量
     library.add_book(id, title, author, category, year, tags)
-    // 所有权转移: title/author/category/tags 的所有权移入 add_book → 移入 Book → 移入 HashMap
-    // 调用方在此之后不能再访问这些变量。
-}
-
-// ═══════════════════════════════════════════════════════════════
-// 命令: query <ID> — 按 ID 查询
-// ═══════════════════════════════════════════════════════════════
-
-/// 按 ID 查询图书。
-/// 参数: library — &Library (不可变借用, 只读)。
-///       id_str — &str (借用, 不消耗)。
-pub fn cmd_query_by_id(library: &Library, id_str: &str) {
-    match parse_id(id_str) {
-        Ok(id) => {
-            // get_book 返回 Option<&Book> — 找到了返回 Some, 没找到返回 None
-            match library.get_book(id) {
-                Some(book) => println!("{}", book),  // Display trait: Book 实现了 fmt::Display
-                None => println!("未找到 ID={} 的图书。", id),
-            }
-        }
-        Err(e) => println!("{}", e),
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// 命令: search title <关键词> — 按书名搜索
-// ═══════════════════════════════════════════════════════════════
-
-/// 按书名模糊搜索。
-/// 参数: query — &str (借用), 在 search_by_title 内部与每个书名比较。
-pub fn cmd_search_title(library: &Library, query: &str) {
-    // search_by_title 返回 Vec<&Book> — 元素是 &Book (借用 library 里的数据)
-    // 生命周期: 返回的引用不能超过 library 的生命周期 (编译器自动检查)
-    let results: Vec<&Book> = library.search_by_title(query);
-
-    print_search_results(query, "书名", &results);
-}
-
-// ═══════════════════════════════════════════════════════════════
-// 命令: search author <关键词> — 按作者搜索
-// ═══════════════════════════════════════════════════════════════
-
-/// 按作者模糊搜索。
-pub fn cmd_search_author(library: &Library, query: &str) {
-    let results: Vec<&Book> = library.search_by_author(query);
-    print_search_results(query, "作者", &results);
-}
-
-/// 辅助: 打印搜索结果。
-fn print_search_results(query: &str, field: &str, results: &[&Book]) {
-    // &[&Book]: 借切片, 不消耗 Vec — 调用后原 Vec 仍可用
-    println!("搜索{}含 '{}': {} 本", field, query, results.len());
-    if results.is_empty() {
-        println!("  无匹配结果。");
-    } else {
-        for (i, book) in results.iter().enumerate() {
-            // enumerate(): (索引, 元素) 迭代器 — 给结果编号
-            println!("  [{}] {}", i + 1, book);
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// 命令: list — 列出全部图书
-// ═══════════════════════════════════════════════════════════════
-
-/// 列出全部图书 (按年份+书名排序)。
-pub fn cmd_list(library: &Library) {
-    let books: Vec<&Book> = library.list_all();
-    // list_all 内部: collect 所有 &Book → sort_by 排序 (闭包比较年份)
-    // 返回 Vec<&Book>: 元素是 &Book, 借用 library 里的数据
-
-    if books.is_empty() {
-        println!("图书馆是空的, 先用 add 命令添加图书吧。");
-        return;
-    }
-
-    println!("══════ 全部藏书 ({} 本, 按年份排序) ══════", books.len());
-    for (i, book) in books.iter().enumerate() {
-        // ID 不在 Book 里 — 需要从底层查。这里用位置序号替代。
-        println!("  #{:<3} {}", i + 1, book);
-        // {:<3}: 左对齐占 3 格, 对齐美观
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// 命令: count/stats — 显示统计信息
-// ═══════════════════════════════════════════════════════════════
-
-/// 显示藏书统计: 总数 + 各分类数量 (BTreeMap 有序) + 标签种类 (HashSet 去重)。
-pub fn cmd_stats(library: &Library) {
-    // stats() 返回 LibraryStats: 内部含 BTreeMap 分类计数 + HashSet 标签收集
-    let stats = library.stats();
-
-    // 简单计数 — 直接取 len()
-    println!("══════ 图书馆统计 ══════");
-    println!("总藏书: {} 本", library.book_count());
-
-    // 详细统计 — LibraryStats 实现了 Display trait
-    // BTreeMap 保证分类按字典序输出 (HashMap 无序!)
-    println!("{}", stats);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -209,19 +99,22 @@ pub fn cmd_stats(library: &Library) {
 // ═══════════════════════════════════════════════════════════════
 
 /// 删除指定 ID 的图书。
-/// 参数: library — &mut Library, 可变借用 (要删除数据)。
+/// - library: &mut Library — 可变借用 (要从 HashMap 中 remove)
+/// - id_str: &str — 借用, 只解析不消耗
 pub fn cmd_delete(library: &mut Library, id_str: &str) {
-    match parse_id(id_str) {
-        Ok(id) => {
-            // remove_book 返回 Result<Book, LibraryError>
-            // 所有权: Book 的所有权从 HashMap 中移出, 交给调用方。
+    match parse_id(id_str) { // id_str: &str 借用, parse 只读
+        Ok(id) => { // id: u32 (Copy)
+            // remove_book: &mut self → Result<Book, LibraryError>
+            // Book 的所有权从 HashMap 中移出!
             match library.remove_book(id) {
-                Ok(book) => println!("已删除: {} (ID={})", book.title, id),
-                // book 在此离开作用域 → Book 被 drop → 其 String 字段释放
-                Err(e) => println!("{}", e),
+                Ok(book) => {
+                    // book: Book (owned!), book.title 借给 println!
+                    println!("已删除: {} (ID={})", book.title, id);
+                } // book 离开作用域 → Book drop, 所有 String 字段释放
+                Err(e) => println!("{}", e), // e: LibraryError, 借给 println!
             }
         }
-        Err(e) => println!("{}", e),
+        Err(e) => println!("{}", e), // e: String owned, 从 Err 移出, 借给 println!, 后 drop
     }
 }
 
@@ -229,42 +122,42 @@ pub fn cmd_delete(library: &mut Library, id_str: &str) {
 // 命令: modify <ID> — 修改图书
 // ═══════════════════════════════════════════════════════════════
 
-/// 交互式修改图书: 先展示当前信息, 再逐字段询问 (回车跳过=不修改)。
+/// 交互式修改图书: 先展示当前信息, 再逐字段询问 (回车跳过 = 不修改)。
+/// - library: &mut Library — 可变借用
+/// - id_str: &str — 借用
+///
+/// Option 作"可选更新"载体: None = 不修改此字段, Some(v) = 更新为 v。
 pub fn cmd_modify(library: &mut Library, id_str: &str) {
+    // ── 解析 ID ──
     let id = match parse_id(id_str) {
-        Ok(id) => id,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
+        Ok(id) => id, // id 作为 match 表达式的值
+        Err(e) => { println!("{}", e); return; }
     };
 
-    // 先展示当前信息 — 确认用户要改哪本
+    // ── 展示当前信息 ──
+    // get_book: &self → Option<&Book>; &Book 借用 library 里的数据
     match library.get_book(id) {
-        Some(book) => println!("当前信息: {}", book),
-        None => {
-            println!("未找到 ID={} 的图书。", id);
-            return;
-        }
-    }
+        Some(book) => println!("当前信息: {}", book), // Display trait
+        None => { println!("未找到 ID={} 的图书。", id); return; }
+    } // get_book 的不可变借用结束
 
     println!("请逐项输入新值 (直接回车=不修改):");
     println!("──────────────────────────────");
 
-    // 书名 — 回车跳过 → 传 None
-    let title_input = read_line("新书名 [回车跳过]: ");
+    // ── 书名 ──
+    let title_input = read_line("新书名 [回车跳过]: "); // String owned
+    // is_empty → None (不修改); 否则 Some(输入) — 所有权移入 Some
     let title = if title_input.is_empty() { None } else { Some(title_input) };
-    // Option<String>: None = 不修改此字段; Some(s) = 更新为 s
 
-    // 作者
+    // ── 作者 ──
     let author_input = read_line("新作者 [回车跳过]: ");
     let author = if author_input.is_empty() { None } else { Some(author_input) };
 
-    // 分类 — 也支持回车跳过
+    // ── 分类 ──
     println!("新分类: 1=小说 2=科学 3=历史 4=技术 5=哲学 6=其他 [回车跳过]");
     let cat_input = read_line("选择: ");
     let category: Option<Category> = if cat_input.is_empty() {
-        None                                          // None → 不修改分类
+        None
     } else {
         Some(match cat_input.as_str() {
             "1" => Category::Fiction,
@@ -272,32 +165,31 @@ pub fn cmd_modify(library: &mut Library, id_str: &str) {
             "3" => Category::History,
             "4" => Category::Technology,
             "5" => Category::Philosophy,
-            "6" => {
-                let other = read_line("  自定义分类名: ");
-                Category::Other(other)
-            }
-            other => Category::from(other),
+            "6" => { let other = read_line("  自定义分类名: "); Category::Other(other) }
+            other => Category::from(other), // From trait
         })
     };
 
-    // 年份
+    // ── 年份 ──
     let year_input = read_line("新出版年份 [回车跳过]: ");
-    let year: Option<u32> = if year_input.is_empty() {
-        None
-    } else {
-        Some(year_input.parse().unwrap_or(0))
-    };
+    let year: Option<u32> = if year_input.is_empty() { None }
+                            else { Some(year_input.parse().unwrap_or(0)) };
 
-    // 标签
+    // ── 标签 ──
     let tags_input = read_line("新标签 (逗号分隔) [回车跳过]: ");
     let tags: Option<Vec<&str>> = if tags_input.is_empty() {
         None
     } else {
-        // split → map trim → filter 非空 → collect
+        // ⚠️ 生命周期: Vec<&str> 中的 &str 借用了 tags_input
+        // modify_book 内部会把 &str → String, tags_input 在此之前存活, 安全
         Some(tags_input.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()).collect())
     };
 
-    // 调用 modify_book — 所有权: 所有 Some 值移入 library
+    // ── 调用 modify_book ──
+    // 签名: fn modify_book(&mut self, id: u32, title: Option<String>, ...)
+    //           → Result<&Book, LibraryError>
+    // 所有权: id/year (Copy) 自动复制; Option 中 Some(v) 移入 library
+    // 返回值: Ok(&book) — &Book 借用 library 里已修改的数据
     match library.modify_book(id, title, author, category, year, tags) {
         Ok(book) => {
             println!("──────────────────────────────");
@@ -305,5 +197,7 @@ pub fn cmd_modify(library: &mut Library, id_str: &str) {
         }
         Err(e) => println!("修改失败: {}", e),
     }
+    // title_input/author_input/... 中已移入 Option 的数据不受影响 (所有权已转移)
+    // 未移入的数据 (None 分支) 在此 drop
 }
 

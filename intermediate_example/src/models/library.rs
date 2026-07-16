@@ -39,7 +39,7 @@ impl Library {
             return Err(LibraryError::EmptyTitle);
         }
 
-        let book = Book::new(title, author, category, year, tags);
+        let book = Book::new(id, title, author, category, year, tags);
 
         // Entry API: HashMap 的"检查并操作"统一入口。
         // self.books.entry(id) 返回 Entry 枚举, 有两个变体:
