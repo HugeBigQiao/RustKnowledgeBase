@@ -1,4 +1,4 @@
-# intermediate_example — Rust 中级综合实践
+# intermediate_library — Rust 中级综合实践
 
 图书管理系统，综合运用 intermediate 和 basic 模块学到的全部知识。
 
@@ -109,13 +109,13 @@ src/
 ```
 ┌─────────────────────────────────────────┐
 │              外部项目                   │
-│  use intermediate_example::models::...  │  ← 调用 lib.rs (接口)
-│  use intermediate_example::service::... │
+│  use intermediate_library::models::...  │  ← 调用 lib.rs (接口)
+│  use intermediate_library::service::... │
 └──────────────┬──────────────────────────┘
                │ 引用 (Cargo.toml)
                ▼
 ┌──────────────────────────────────────────┐
-│        intermediate_example crate        │
+│        intermediate_library crate        │
 │                                          │
 │  main.rs ──→ 启动 → 调用 → lib.rs       │
 │     (自己内部跑)          (对外接口)      │
@@ -135,7 +135,7 @@ src/
 ### 目录结构
 
 ```
-intermediate_example/
+intermediate_library/
 ├── Cargo.toml
 ├── README.md
 └── src/

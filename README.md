@@ -7,9 +7,9 @@
 ```
 RustLearning/
 ├── basic/                     ← 零基础入门 (19个模块)
-├── intermediate/              ← 中级概念 (9个模块)
-├── intermediate_example/      ← 综合实践 (图书管理系统)
-├── advanced/                  ← 高级概念 (9个模块)
+├── intermediate/              ← 中级概念 (12个模块)
+├── intermediate_library/      ← 综合实践 (图书管理系统)
+├── advanced/                  ← 高级概念 (8个模块)
 ├── advanced_data_pipeline/    ← 项目1: 数据流通 (文件 ↔ SQLite)
 ├── advanced_data_flow/        ← 项目2: 异步数据流 (async PG + egui)
 └── README.md
@@ -36,7 +36,48 @@ rustc --version   # 应显示类似 rustc 1.85.0
 cargo --version   # 应显示类似 cargo 1.85.0
 ```
 
-### 2. 编辑器支持 (rust-analyzer)
+### 2. 配置镜像源 (中国大陆推荐)
+
+Rust 默认从 [crates.io](https://crates.io) 下载依赖, 国内访问可能较慢。
+推荐配置国内镜像加速。
+
+编辑 `~/.cargo/config.toml` (如果不存在则创建):
+
+**Windows** (`%USERPROFILE%\.cargo\config.toml`):
+```powershell
+mkdir -p $env:USERPROFILE\.cargo
+notepad $env:USERPROFILE\.cargo\config.toml
+```
+
+**Linux / macOS** (`~/.cargo/config.toml`):
+```bash
+mkdir -p ~/.cargo
+nano ~/.cargo/config.toml
+```
+
+写入以下内容 (以清华 TUNA 镜像为例):
+
+```toml
+[source.crates-io]
+replace-with = 'tuna'
+
+[source.tuna]
+registry = "https://mirrors.tuna.tsinghua.edu.cn/crates.io-index"
+
+[registries.tuna]
+index = "https://mirrors.tuna.tsinghua.edu.cn/crates.io-index"
+
+[http]
+check-revoke = false
+```
+
+> **其他可用镜像**:
+> - 中科大: `https://mirrors.ustc.edu.cn/crates.io-index`
+> - 上海交大: `https://mirrors.sjtug.sjtu.edu.cn/crates.io-index`
+>
+> 换回官方源: 删除 `~/.cargo/config.toml` 或注释掉 `replace-with` 行即可。
+
+### 3. 编辑器支持 (rust-analyzer)
 
 `rust-analyzer` 是 Rust 的 LSP 服务器, 提供代码补全、跳转、实时报错等功能.
 
@@ -44,7 +85,7 @@ cargo --version   # 应显示类似 cargo 1.85.0
 - **VS Code**: 安装 `rust-analyzer` 扩展即可, 它会自动下载.
 - **手动安装**: `rustup component add rust-analyzer`(一般不需要, 编辑器已集成).
 
-### 3. C++ 编译环境 (Windows 必装)
+### 4. C++ 编译环境 (Windows 必装)
 
 部分 crate(如 `rusqlite`、`openssl`、`egui` 的某些后端)在编译时需要调用 C/C++ 编译器. **Linux/macOS 通常已自带**, Windows 需要额外安装:
 
@@ -80,7 +121,7 @@ sudo dnf install gcc pkg-config openssl-devel
 xcode-select --install
 ```
 
-> **注意**: `advanced_data_pipeline`(SQLite) 和 `advanced_data_flow`(PostgreSQL + egui) 两个项目需要 C++ 环境.
+> **注意**: `intermediate`(rusqlite)、`advanced_data_pipeline`(SQLite) 和 `advanced_data_flow`(PostgreSQL + egui) 三个项目需要 C++ 环境。
 > 如果只学习 `basic` / `intermediate` / `advanced` 的概念代码, 纯 Rust 就能编译, 不需要 C++ 环境.
 
 ---
@@ -145,14 +186,17 @@ Rust 的所有权系统重度依赖堆和栈的概念, 建议先了解:
 | 7 | `traits.rs` | 特型: 定义/实现/默认方法/Derive 宏 |
 | 8 | `lifetimes.rs` | 生命周期: 标注/省略规则/struct 引用/'static |
 | 9 | `collections.rs` | 集合: HashMap/Entry API/HashSet/BTreeMap |
+| 10 | `file_io.rs` | 文件 I/O: 基础读写 + JSON/CSV 格式序列化、行数列数探查、所有权流转 |
+| 11 | `database.rs` | SQLite 入门: rusqlite CRUD、参数化查询、事务 |
+| 12 | `macros_intro.rs` | 宏基础: 宏 vs 函数、声明宏/过程宏、内置宏一览 |
 
 ---
 
-## intermediate_example/ — 综合实践 (图书管理系统)
+## intermediate_library/ — 综合实践 (图书管理系统)
 
 综合运用 basic + intermediate 全部知识点。
 
-详见 [intermediate_example/README.md](intermediate_example/README.md)
+详见 [intermediate_library/README.md](intermediate_library/README.md)
 
 ---
 
@@ -165,12 +209,11 @@ Rust 的所有权系统重度依赖堆和栈的概念, 建议先了解:
 | 1 | `smart_pointers.rs` | Box/Deref/Drop/Rc/Arc |
 | 2 | `interior_mutability.rs` | Cell/RefCell/Rc\<RefCell\> |
 | 3 | `unsafe_rust.rs` | 裸指针/unsafe块/FFI 概念 |
-| 4 | `macros.rs` | macro_rules! 声明宏 |
+| 4 | `macros.rs` | 自定义宏实战: 捕获类型/重复模式/代码生成/递归宏 |
 | 5 | `concurrency.rs` | thread/mpsc/Mutex/Arc |
 | 6 | `async_intro.rs` | async/await/Future trait |
-| 7 | `io_advanced.rs` | Read/Write trait/BufReader/Path |
-| 8 | `networking.rs` | TcpListener/TcpStream/UDP/HTTP |
-| 9 | `database.rs` | 文件 CRUD 持久化 |
+| 7 | `networking.rs` | TcpListener/TcpStream/UDP/HTTP |
+| 8 | `data_processing.rs` | 数据处理: rust_xlsxwriter (Excel 写入) + polars (DataFrame 分析) |
 
 > 这些模块只演示概念, 深度实战请看下方两个项目.
 
@@ -211,11 +254,11 @@ cargo run -- contention              # 写竞争三策略演示
 ```bash
 # 概念学习 (basic/intermediate/advanced)
 cd basic && cargo run && cargo run -- ownership_and_refs
-cd intermediate && cargo run && cargo run -- error_handling
-cd advanced && cargo run && cargo run -- smart_pointers
+cd intermediate && cargo run && cargo run -- file_io
+cd advanced && cargo run && cargo run -- data_processing
 
 # 综合实践
-cd intermediate_example && cargo run
+cd intermediate_library && cargo run
 
 # 项目实战
 cd advanced_data_pipeline && cargo run -- help

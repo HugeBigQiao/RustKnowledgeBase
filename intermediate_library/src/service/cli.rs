@@ -12,8 +12,15 @@ use crate::models::category::Category;
 use crate::models::library::Library;
 
 // ── 辅助: 读取一行输入 ──
+//
+// pub(crate): 可见性修饰 — 只在当前 crate (intermediate_library) 内部可见, 外部 crate 调用不了
+//             比 pub 窄 (pub 对外公开), 比私有宽 (私有只能本文件用)
+//             这里用 pub(crate) 是因为 cli_query.rs 也要用它 (通过 super::cli::prompt_read 引用)
+//
+// prompt_read: 自定义辅助函数, 内部调用标准库的 stdin().read_line(),
+//              额外做了 trim + to_string, 一步到位返回干净 String
 // prompt: &str — 借用, 不消耗; 返回 String (owned) — 所有权移给调用方
-pub(crate) fn read_line(prompt: &str) -> String {
+pub(crate) fn prompt_read(prompt: &str) -> String {
     // 为什么先 print 再 flush? stdout 有行缓冲, print! 没有 \n, 必须手动 flush 才能显示
     print!("{}", prompt);
     io::stdout().flush().unwrap(); // flush → Result<()>, unwrap 取出值 (通常不会失败)
@@ -29,8 +36,11 @@ pub(crate) fn read_line(prompt: &str) -> String {
 }
 
 // ── 辅助: 解析 u32 ──
+// 把用户输入的字符串 (如 "3""abc") 转成数字或错误消息。
+// query/delete/modify 三个命令都需要解析用户输入的 ID, 所以抽成共用函数。
+//
 // s: &str — 借用, 不消耗; 返回 Result<u32, String>
-// 用 String 而非 ParseIntError 做错误类型 — 方便直接 println! 打印
+// 用 String (而非 ParseIntError) 做错误类型 — 方便直接 println!("{}", e) 打印
 pub(crate) fn parse_id(s: &str) -> Result<u32, String> {
     s.parse::<u32>() // <u32>: turbofish 指定泛型; &self = &str, 不消耗 s
         .map_err(|e| format!("'{}' 不是有效的数字: {}", s, e))
@@ -48,14 +58,14 @@ pub(crate) fn parse_id(s: &str) -> Result<u32, String> {
 pub fn cmd_add(library: &mut Library, id: u32) -> Result<u32, LibraryError> {
     println!("══════ 添加新书 (ID: {}) ══════", id);
 
-    // 书名: read_line → String (owned), 所有权 → title
-    let title = read_line("书名: ");
+    // 书名: prompt_read → String (owned), 所有权 → title
+    let title = prompt_read("书名: ");
     // 作者: 同理
-    let author = read_line("作者: ");
+    let author = prompt_read("作者: ");
 
     // 分类: 展示选项 → 读输入 → match 匹配
     println!("分类: 1=小说 2=科学 3=历史 4=技术 5=哲学 6=其他(自定义)");
-    let cat_input = read_line("选择 (1-6 或分类名): "); // String owned → cat_input
+    let cat_input = prompt_read("选择 (1-6 或分类名): "); // String owned → cat_input
 
     // as_str(): &String → &str (借用 cat_input), 生命周期 = cat_input 生命周期
     let category = match cat_input.as_str() {
@@ -65,7 +75,7 @@ pub fn cmd_add(library: &mut Library, id: u32) -> Result<u32, LibraryError> {
         "4" => Category::Technology,
         "5" => Category::Philosophy,
         "6" => {
-            let other = read_line("  自定义分类名: "); // String owned
+            let other = prompt_read("  自定义分类名: "); // String owned
             Category::Other(other) // other 所有权移入 Other 变体
         }
         other => Category::from(other), // From<&str> trait: &str → Category
@@ -73,12 +83,12 @@ pub fn cmd_add(library: &mut Library, id: u32) -> Result<u32, LibraryError> {
     println!("  已选择: {}", category); // Display trait
 
     // 年份: parse → unwrap_or(0) 提供默认值, 不崩溃
-    let year_str = read_line("出版年份: ");
+    let year_str = prompt_read("出版年份: ");
     let year: u32 = year_str.parse().unwrap_or(0);
     // year: u32 (Copy), year_str 不再使用但还存活
 
     // 标签: split → map trim → filter → collect
-    let tags_str = read_line("标签 (逗号分隔, 如: rust,编程): ");
+    let tags_str = prompt_read("标签 (逗号分隔, 如: rust,编程): ");
     let tags: Vec<&str> = if tags_str.is_empty() {
         vec![]
     } else {
@@ -145,17 +155,17 @@ pub fn cmd_modify(library: &mut Library, id_str: &str) {
     println!("──────────────────────────────");
 
     // ── 书名 ──
-    let title_input = read_line("新书名 [回车跳过]: "); // String owned
+    let title_input = prompt_read("新书名 [回车跳过]: "); // String owned
     // is_empty → None (不修改); 否则 Some(输入) — 所有权移入 Some
     let title = if title_input.is_empty() { None } else { Some(title_input) };
 
     // ── 作者 ──
-    let author_input = read_line("新作者 [回车跳过]: ");
+    let author_input = prompt_read("新作者 [回车跳过]: ");
     let author = if author_input.is_empty() { None } else { Some(author_input) };
 
     // ── 分类 ──
     println!("新分类: 1=小说 2=科学 3=历史 4=技术 5=哲学 6=其他 [回车跳过]");
-    let cat_input = read_line("选择: ");
+    let cat_input = prompt_read("选择: ");
     let category: Option<Category> = if cat_input.is_empty() {
         None
     } else {
@@ -165,18 +175,18 @@ pub fn cmd_modify(library: &mut Library, id_str: &str) {
             "3" => Category::History,
             "4" => Category::Technology,
             "5" => Category::Philosophy,
-            "6" => { let other = read_line("  自定义分类名: "); Category::Other(other) }
+            "6" => { let other = prompt_read("  自定义分类名: "); Category::Other(other) }
             other => Category::from(other), // From trait
         })
     };
 
     // ── 年份 ──
-    let year_input = read_line("新出版年份 [回车跳过]: ");
+    let year_input = prompt_read("新出版年份 [回车跳过]: ");
     let year: Option<u32> = if year_input.is_empty() { None }
                             else { Some(year_input.parse().unwrap_or(0)) };
 
     // ── 标签 ──
-    let tags_input = read_line("新标签 (逗号分隔) [回车跳过]: ");
+    let tags_input = prompt_read("新标签 (逗号分隔) [回车跳过]: ");
     let tags: Option<Vec<&str>> = if tags_input.is_empty() {
         None
     } else {

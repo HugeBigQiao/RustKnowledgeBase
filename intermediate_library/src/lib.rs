@@ -1,4 +1,4 @@
-//! intermediate_example: Rust 中级综合实践项目——图书管理系统 (CLI 交互版)。
+//! intermediate_library: Rust 中级综合实践项目——图书管理系统 (CLI 交互版)。
 //!
 //! 运行 `cargo run` 进入交互界面, 输入命令管理图书。
 //! 所有数据仅在内存中, 退出即清空。

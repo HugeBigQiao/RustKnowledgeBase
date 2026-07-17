@@ -13,9 +13,8 @@ mod unsafe_rust;
 mod macros;
 mod concurrency;
 mod async_intro;
-mod io_advanced;
 mod networking;
-mod database;
+mod data_processing;
 mod sandbox;
 
 use std::env;
@@ -35,10 +34,9 @@ fn main() {
         "macros" => macros::run(),
         "concurrency" => concurrency::run(),
         "async_intro" => async_intro::run(),
-        "io_advanced" => io_advanced::run(),
         "networking" => networking::run(),
-        "database" => database::run(),
-                "sandbox" => sandbox::run(),
+        "data_processing" => data_processing::run(),
+        "sandbox" => sandbox::run(),
         _ => {
             println!("未知模块: {}\n", args[1]);
             print_help();
@@ -51,12 +49,11 @@ fn print_help() {
     println!("  smart_pointers      智能指针 (Box/Deref/Drop/Rc/Arc)");
     println!("  interior_mutability 内部可变性 (Cell/RefCell/Rc<RefCell>)");
     println!("  unsafe_rust         unsafe Rust (裸指针/unsafe 块/FFI)");
-    println!("  macros              声明宏 (macro_rules!)");
+    println!("  macros              声明宏 (macro_rules! 自定义宏)");
     println!("  concurrency         并发 (thread/channel/Mutex/Arc)");
     println!("  async_intro         异步 (async/await/Future trait)");
-    println!("  io_advanced         文件 I/O (Read/Write/BufReader/Path)");
     println!("  networking          网络 (TCP/UDP/HTTP)");
-    println!("  database            数据持久化 (文件 CRUD)");
+    println!("  data_processing     数据处理 (rust_xlsxwriter + polars)");
     println!();
     println!("用法: cargo run -- <模块名>");
     println!("示例: cargo run -- smart_pointers");
