@@ -168,7 +168,7 @@ pub fn run() {
     println!("n.map(|x| x*2)   = {:?}", still_none);
 
     // and_then: 类似 map, 但闭包返回的是 Option (链式操作中某一环可能产生 None)
-    let result = v.get(0)           // Option<&i32> — 借用 v
+    let _result = v.get(0)           // Option<&i32> — 借用 v
         .map(|x| x * 3)              // Some(30): &i32 * 3 → i32 × 3 = 30
         .and_then(|x| if x > 20 { Some(x) } else { None }); // x: i32 — 这里已脱离 v, 不再借用
 

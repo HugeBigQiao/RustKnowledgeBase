@@ -55,25 +55,22 @@ mkdir -p ~/.cargo
 nano ~/.cargo/config.toml
 ```
 
-写入以下内容 (以清华 TUNA 镜像为例):
+写入以下内容 (以清华 TUNA 镜像为例, 使用 sparse 协议):
 
 ```toml
 [source.crates-io]
 replace-with = 'tuna'
 
 [source.tuna]
-registry = "https://mirrors.tuna.tsinghua.edu.cn/crates.io-index"
-
-[registries.tuna]
-index = "https://mirrors.tuna.tsinghua.edu.cn/crates.io-index"
-
-[http]
-check-revoke = false
+registry = "sparse+https://mirrors.tuna.tsinghua.edu.cn/crates.io-index/"
 ```
 
+> **sparse 协议**: Cargo 1.68+ 默认支持的索引协议, 按需逐文件下载而非克隆整个 git 仓库,
+> 速度更快, 也是官方推荐的镜像方式。旧版无 `sparse+` 前缀的 git 地址已被多数镜像停用。
+
 > **其他可用镜像**:
-> - 中科大: `https://mirrors.ustc.edu.cn/crates.io-index`
-> - 上海交大: `https://mirrors.sjtug.sjtu.edu.cn/crates.io-index`
+> - 中科大: `sparse+https://mirrors.ustc.edu.cn/crates.io-index/`
+> - 上海交大: `sparse+https://mirrors.sjtug.sjtu.edu.cn/crates.io-index/`
 >
 > 换回官方源: 删除 `~/.cargo/config.toml` 或注释掉 `replace-with` 行即可。
 

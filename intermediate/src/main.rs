@@ -35,7 +35,7 @@ fn main() {
             println!("未知模块: {}", other);
             print_help();
         }
-        None => print_help(),
+        _ => print_help(),
     }
 }
 
