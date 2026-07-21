@@ -8,6 +8,7 @@ pub enum FlowError {
     Sqlx(sqlx::Error),
     Csv(csv::Error),
     Json(serde_json::Error),
+    Xlsx(rust_xlsxwriter::XlsxError),
     Other(String),
 }
 
@@ -18,9 +19,14 @@ impl fmt::Display for FlowError {
             FlowError::Sqlx(e) => write!(f, "数据库错误: {}", e),
             FlowError::Csv(e) => write!(f, "CSV 错误: {}", e),
             FlowError::Json(e) => write!(f, "JSON 错误: {}", e),
+            FlowError::Xlsx(e) => write!(f, "Excel 错误: {}", e),
             FlowError::Other(msg) => write!(f, "{}", msg),
         }
     }
+}
+
+impl From<rust_xlsxwriter::XlsxError> for FlowError {
+    fn from(e: rust_xlsxwriter::XlsxError) -> Self { FlowError::Xlsx(e) }
 }
 
 impl std::error::Error for FlowError {}

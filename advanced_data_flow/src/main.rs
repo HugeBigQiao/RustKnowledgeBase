@@ -10,7 +10,7 @@
 
 use clap::Parser;
 
-use advanced_data_flow::gui::egui_app;
+use advanced_data_flow::gui::app;
 use advanced_data_flow::pipeline::async_readers::FileFormat;
 use advanced_data_flow::service::data_service;
 
@@ -93,7 +93,7 @@ async fn main() {
 
         println!("启动 egui 桌面界面...");
         println!("数据库 URL: {}", db_url);
-        if let Err(e) = egui_app::run(&db_url) {
+        if let Err(e) = app::run(&db_url) {
             eprintln!("egui 启动失败: {}", e);
             std::process::exit(1);
         }

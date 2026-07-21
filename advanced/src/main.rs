@@ -15,6 +15,7 @@ mod concurrency;
 mod async_intro;
 mod networking;
 mod data_processing;
+mod gui_intro;
 mod sandbox;
 
 use std::env;
@@ -36,6 +37,7 @@ fn main() {
         "async_intro" => async_intro::run(),
         "networking" => networking::run(),
         "data_processing" => data_processing::run(),
+        "gui_intro" => gui_intro::run(),
         "sandbox" => sandbox::run(),
         _ => {
             println!("未知模块: {}\n", args[1]);
@@ -54,6 +56,7 @@ fn print_help() {
     println!("  async_intro         异步 (async/await/Future trait)");
     println!("  networking          网络 (TCP/UDP/HTTP)");
     println!("  data_processing     数据处理 (rust_xlsxwriter + polars)");
+    println!("  gui_intro           GUI 桌面开发入门 (egui 即时模式框架)");
     println!();
     println!("用法: cargo run -- <模块名>");
     println!("示例: cargo run -- smart_pointers");

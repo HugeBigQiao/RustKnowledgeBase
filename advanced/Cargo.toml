@@ -7,3 +7,4 @@ edition = "2024"
 polars = { version = "0.47", features = ["csv", "fmt", "rows", "lazy", "strings", "describe", "polars-io"] }
 calamine = "0.26"
 rust_xlsxwriter = "0.20"
+eframe = "0.30"

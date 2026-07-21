@@ -11,7 +11,7 @@ RustLearning/
 ├── intermediate_library/      ← 综合实践 (图书管理系统)
 ├── advanced/                  ← 高级概念 (8个模块)
 ├── advanced_data_pipeline/    ← 项目1: 数据流通 (文件 ↔ SQLite)
-├── advanced_data_flow/        ← 项目2: 异步数据流 (async PG + egui)
+├── advanced_data_flow/        ← 项目2: 异步数据流 (async PG + egui双页面 + 自定义宏 + Excel)
 └── README.md
 ```
 
@@ -231,13 +231,17 @@ cargo run -- list && cargo run -- show -t users && cargo run -- log
 
 ---
 
-## advanced_data_flow/ — 异步数据流 (async PG + 并发)
+## advanced_data_flow/ — 异步数据流平台 (async PG + 双页面GUI + 自定义宏 + Excel)
 
-**练习重点**: async/await、tokio、sqlx(PostgreSQL)、并发写竞争、egui 桌面界面。
+**练习重点**: async/await、tokio、sqlx(PostgreSQL)、egui 双页面 GUI、自定义宏、Excel 读写、UI/逻辑解耦。
+
+提供两个页面:
+- **📤 数据导出**: 数据库/表下拉 → 列多选 → 列间运算(加减乘除) → 排序 → 预览 → 导出 Excel
+- **📥 数据导入**: 多数据源(CSV/JSON/Excel/TXT)管理 → 目标库/表选择 → 列映射 → 批量导入
 
 ```bash
 cd advanced_data_flow
-cargo run -- gui                     # 启动 egui 桌面窗口
+cargo run -- gui                     # 启动双页面桌面窗口
 cargo run -- import -f csv -t users --file data.csv
 cargo run -- contention              # 写竞争三策略演示
 ```
@@ -259,5 +263,6 @@ cd intermediate_library && cargo run
 
 # 项目实战
 cd advanced_data_pipeline && cargo run -- help
-cd advanced_data_flow && cargo run -- help
+cd advanced_data_flow && cargo run -- help       # CLI 模式
+cd advanced_data_flow && cargo run -- gui        # GUI 双页面
 ```
